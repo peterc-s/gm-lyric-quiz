@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <time.h>
 
 ///////
 /// Global constants
@@ -28,6 +29,7 @@ const Clay_Sizing layout_grow = {
 ///////
 /// Global variables
 bool debug = false;
+int lyric_index;
 
 //////
 /// Utility
@@ -69,7 +71,7 @@ Clay_RenderCommandArray layout() {
         ) {
             CLAY(
                 CLAY_ID("Header Text"),
-                CLAY_TEXT(LYRICS[0].title, CLAY_TEXT_CONFIG({
+                CLAY_TEXT(LYRICS[lyric_index].title, CLAY_TEXT_CONFIG({
                     .fontId = FONT_ID_BODY_24,
                     .fontSize = 42,
                     .textColor = COL_FOREGROUND,
@@ -90,7 +92,7 @@ Clay_RenderCommandArray layout() {
         ) {
             CLAY(
                 CLAY_ID("Lyrics"),
-                CLAY_TEXT(LYRICS[0].lyrics, CLAY_TEXT_CONFIG({
+                CLAY_TEXT(LYRICS[lyric_index].lyrics, CLAY_TEXT_CONFIG({
                     .fontId = FONT_ID_BODY_16,
                     .fontSize = 24,
                     .textColor = COL_FOREGROUND,
@@ -163,6 +165,10 @@ int main(void) {
     };
 
     SetTextureFilter(Raylib_fonts[FONT_ID_BODY_16].font.texture, TEXTURE_FILTER_BILINEAR);
+
+    // Get lyric index
+    srand(time(NULL));
+    lyric_index = rand() % NUM_LYRICS;
 
     // Draw loop
     while(!WindowShouldClose()) {
