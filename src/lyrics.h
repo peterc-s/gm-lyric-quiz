@@ -8,10 +8,16 @@ typedef struct Song {
     Clay_String lyrics;
 } Song;
 
+typedef struct RedactedWord {
+    int start_index;
+    int len;
+    char* word;
+} RedactedWord;
+
 typedef struct RedactedSong {
     Song* original;
     Clay_String redacted_lyrics;
-    Clay_String* redacted_words;
+    RedactedWord* redacted_words;
     int num_redacted;
 } RedactedSong;
 

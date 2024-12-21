@@ -251,6 +251,15 @@ void draw() {
         input_buf[input_buf_count] = '\0';
     }
 
+    if (IsKeyPressed(KEY_ENTER)) {
+        printf("GUESSED: %s, ACTUAL: %s\n", input_buf, redacted.redacted_words[redacted_index].word);
+        if (!strcmp(redacted.redacted_words[redacted_index].word, input_buf)) {
+            printf("Correct!\n");
+        } else {
+            printf("Wrong!\n");
+        }
+    }
+
     // Get layout
     Clay_RenderCommandArray render_commands = layout();
 
@@ -263,6 +272,14 @@ void draw() {
 }
 
 int main(void) {
+    // Get lyric index
+    srand(time(NULL));
+    lyric_index = rand() % NUM_LYRICS;
+    Song song = LYRICS[lyric_index];
+
+    // Redact lyrics
+    redacted = redact_song(&song, song.lyrics.length / 30);
+
     // Allocate memory
     uint64_t total_mem = Clay_MinMemorySize();
     Clay_Arena arena = Clay_CreateArenaWithCapacityAndMemory(total_mem, malloc(total_mem));
@@ -287,14 +304,6 @@ int main(void) {
 
     SetTextureFilter(Raylib_fonts[FONT_ID_BODY_16].font.texture, TEXTURE_FILTER_BILINEAR);
     SetTextureFilter(Raylib_fonts[FONT_ID_BODY_24].font.texture, TEXTURE_FILTER_BILINEAR);
-
-    // Get lyric index
-    srand(time(NULL));
-    lyric_index = rand() % NUM_LYRICS;
-    Song song = LYRICS[lyric_index];
-
-    // Redact lyrics
-    redacted = redact_song(&song, song.lyrics.length / 30);
 
     // Draw loop
     while(!WindowShouldClose()) {
