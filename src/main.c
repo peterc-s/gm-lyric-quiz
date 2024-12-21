@@ -31,6 +31,11 @@ const Clay_Sizing layout_grow = {
     .height = CLAY_SIZING_GROW(),
 };
 
+const Clay_Sizing layout_fit = {
+    .width = CLAY_SIZING_FIT(),
+    .height = CLAY_SIZING_FIT(),
+};
+
 ///////
 /// Global variables
 bool debug = false;
@@ -137,10 +142,7 @@ Clay_RenderCommandArray layout() {
                     .color = COL_TRANSPARENT,
                 }),
                 CLAY_LAYOUT({
-                    .sizing = {
-                        .height = CLAY_SIZING_FIT(),
-                        .width = CLAY_SIZING_FIT(),
-                    },
+                    .sizing = layout_fit,
                     .childAlignment = {
                         .x = CLAY_ALIGN_X_LEFT,
                         .y = CLAY_ALIGN_Y_CENTER,
@@ -156,6 +158,7 @@ Clay_RenderCommandArray layout() {
                     })),
                     CLAY_LAYOUT({
                         .padding = { 6, 6 },
+                        .sizing = layout_grow,
                     })
                 ) {}
             }
@@ -187,7 +190,7 @@ Clay_RenderCommandArray layout() {
                         .textColor = COL_FOREGROUND,
                     })),
                     CLAY_LAYOUT({
-                        .padding = { 6, 6 },
+                        .padding = { 4, 4 },
                     })
                 ) {}
             }
