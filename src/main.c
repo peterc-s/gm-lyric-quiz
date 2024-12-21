@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <time.h>
 
 ///////
@@ -30,6 +31,7 @@ const Clay_Sizing layout_grow = {
 /// Global variables
 bool debug = false;
 int lyric_index;
+RedactedSong redacted;
 
 //////
 /// Utility
@@ -92,7 +94,7 @@ Clay_RenderCommandArray layout() {
         ) {
             CLAY(
                 CLAY_ID("Lyrics"),
-                CLAY_TEXT(LYRICS[lyric_index].lyrics, CLAY_TEXT_CONFIG({
+                CLAY_TEXT(redacted.redacted_lyrics, CLAY_TEXT_CONFIG({
                     .fontId = FONT_ID_BODY_16,
                     .fontSize = 24,
                     .textColor = COL_FOREGROUND,
@@ -102,6 +104,20 @@ Clay_RenderCommandArray layout() {
                 })
             ) {}
         }
+
+        CLAY(
+            CLAY_ID("Word Input"),
+            CLAY_RECTANGLE({
+                .color = COL_BACKDROP,
+                .cornerRadius = 8,
+            }),
+            CLAY_LAYOUT({
+                .sizing = {
+                    .width = CLAY_SIZING_GROW(),
+                    .height = CLAY_SIZING_FIXED(60),
+                }
+            })
+        ) {}
     }
 
     return Clay_EndLayout();
@@ -169,6 +185,8 @@ int main(void) {
     // Get lyric index
     srand(time(NULL));
     lyric_index = rand() % NUM_LYRICS;
+    Song song = LYRICS[lyric_index];
+    redacted = redact_song(&song, song.lyrics.length / 30);
 
     // Draw loop
     while(!WindowShouldClose()) {
