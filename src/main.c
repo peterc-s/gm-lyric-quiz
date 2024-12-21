@@ -15,6 +15,7 @@
 /// Global constants
 const uint32_t FONT_ID_BODY_24 = 0;
 const uint32_t FONT_ID_BODY_16 = 1;
+#define MAX_INPUT_BUF 50
 
 // Colours
 const Clay_Color COL_BACKGROUND = (Clay_Color) { 8, 10, 14, 255 };
@@ -32,6 +33,9 @@ const Clay_Sizing layout_grow = {
 bool debug = false;
 int lyric_index;
 RedactedSong redacted;
+int redacted_index = 0;
+char input_buf[MAX_INPUT_BUF];
+int input_buf_count = 0;
 
 //////
 /// Utility
@@ -106,7 +110,7 @@ Clay_RenderCommandArray layout() {
         }
 
         CLAY(
-            CLAY_ID("Word Input"),
+            CLAY_ID("Word Input Container"),
             CLAY_RECTANGLE({
                 .color = COL_BACKDROP,
                 .cornerRadius = 8,
@@ -115,9 +119,34 @@ Clay_RenderCommandArray layout() {
                 .sizing = {
                     .width = CLAY_SIZING_GROW(),
                     .height = CLAY_SIZING_FIXED(60),
-                }
+                },
+                .childAlignment = {
+                    .x = CLAY_ALIGN_X_LEFT,
+                    .y = CLAY_ALIGN_Y_CENTER,
+                },
             })
-        ) {}
+        ) {
+            CLAY(
+                CLAY_ID("Word Input Prompt"),
+                CLAY_TEXT(CLAY_STRING("Enter first missing word: "), CLAY_TEXT_CONFIG({
+                    .fontId = FONT_ID_BODY_24,
+                    .fontSize = 36,
+                    .textColor = COL_FOREGROUND,
+                })),
+                CLAY_LAYOUT({
+                    .padding = { 8, 8 },
+                })
+            ) {}
+
+            CLAY(
+                CLAY_ID("Word Input"),
+                CLAY_TEXT(CLAY_STRING(input_buf), CLAY_TEXT_CONFIG({
+                    .fontId = FONT_ID_BODY_24,
+                    .fontSize = 36,
+                    .textColor = COL_FOREGROUND,
+                }))
+            ) {}
+        }
     }
 
     return Clay_EndLayout();
@@ -141,9 +170,37 @@ void draw() {
         Clay_SetDebugModeEnabled(debug);
     }
 
+    // Quit
     if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_Q)) {
         CloseWindow();
         return;
+    }
+
+    // Text input
+    int key = GetCharPressed();
+
+    // Handle english characters
+    while (key > 0) {
+        if (key >= 32 && key <= 125 && input_buf_count < MAX_INPUT_BUF - 1) {
+            input_buf[input_buf_count] = (char)key;
+            input_buf[input_buf_count + 1] = '\0';
+            ++input_buf_count;
+        }
+
+        key = GetCharPressed();
+    }
+
+    // Handle backspace
+    if (IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) {
+        --input_buf_count;
+        if (input_buf_count < 0) input_buf_count = 0;
+        input_buf[input_buf_count] = '\0';
+    }
+
+    // Ctrl+L to clear
+    if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_L)) {
+        input_buf_count = 0;
+        input_buf[input_buf_count] = '\0';
     }
 
     // Get layout
@@ -181,11 +238,14 @@ int main(void) {
     };
 
     SetTextureFilter(Raylib_fonts[FONT_ID_BODY_16].font.texture, TEXTURE_FILTER_BILINEAR);
+    SetTextureFilter(Raylib_fonts[FONT_ID_BODY_24].font.texture, TEXTURE_FILTER_BILINEAR);
 
     // Get lyric index
     srand(time(NULL));
     lyric_index = rand() % NUM_LYRICS;
     Song song = LYRICS[lyric_index];
+
+    // Redact lyrics
     redacted = redact_song(&song, song.lyrics.length / 30);
 
     // Draw loop

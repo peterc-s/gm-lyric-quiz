@@ -4,8 +4,8 @@
 #include "clay.h"
 
 typedef struct Song {
-    const Clay_String title;
-    const Clay_String lyrics;
+    Clay_String title;
+    Clay_String lyrics;
 } Song;
 
 typedef struct RedactedSong {

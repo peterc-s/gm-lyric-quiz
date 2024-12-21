@@ -706,6 +706,9 @@ RedactedSong redact_song(Song* song, int num_to_redact) {
     }
     memcpy(redacted_lyrics, song->lyrics.chars, song->lyrics.length);
 
+    Clay_String redacted_words[num_to_redact];
+    int num_redacted = 0;
+
     // loop until no more words need
     // to be redacted
     int index = 0;
@@ -715,18 +718,34 @@ RedactedSong redact_song(Song* song, int num_to_redact) {
             // if no words left until redact,
             if (!words_until_redact) {
                 // skip to first letter of word
-                ++index;
+                int word_start = index + 1;
                 
                 // check if already redacted
-                if (redacted_lyrics[index % song->lyrics.length] == '_') {
+                if (redacted_lyrics[word_start % song->lyrics.length] == '_') {
                     // if it is, then redact next word
                     ++words_until_redact;
                 } else {
                     // otherwise, redact the word
-                    while(song->lyrics.chars[index % song->lyrics.length] != ' ') {
-                        redacted_lyrics[index % song->lyrics.length] = '_';
+                    int word_end = word_start;
+                    while(song->lyrics.chars[word_end % song->lyrics.length] != ' ') {
+                        redacted_lyrics[word_end % song->lyrics.length] = '_';
+                        ++word_end;
                         ++index;
                     }
+
+                    int word_length = word_end - word_start;
+                    char* redacted_word = malloc(word_length + 1);
+                    if (!redacted_word) {
+                        fprintf(stderr, "ERROR: Unable to malloc redacted word.");
+                        exit(EXIT_FAILURE);
+                    }
+                    memcpy(redacted_word, &song->lyrics.chars[word_start % song->lyrics.length], word_length);
+                    redacted_word[word_length] = '\0';
+
+                    redacted_words[num_redacted++] = (Clay_String) {
+                        .chars = redacted_word,
+                        .length = word_length,
+                    };
 
                     // decrement amount to redact
                     --num_to_redact;
@@ -748,7 +767,7 @@ RedactedSong redact_song(Song* song, int num_to_redact) {
             .chars = redacted_lyrics,
             .length = song->lyrics.length,
         },
-        .num_redacted = num_to_redact,
-        .redacted_words = NULL,
+        .num_redacted = num_redacted,
+        .redacted_words = redacted_words,
     };
 }
