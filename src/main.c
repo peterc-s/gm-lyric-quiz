@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 
 ///////
@@ -21,6 +22,8 @@ const uint32_t FONT_ID_BODY_16 = 1;
 const Clay_Color COL_BACKGROUND = (Clay_Color) { 8, 10, 14, 255 };
 const Clay_Color COL_BACKDROP = (Clay_Color) { 40, 42, 46, 255 };
 const Clay_Color COL_FOREGROUND = (Clay_Color) { 197, 200, 198, 255 };
+const Clay_Color COL_BACKDROP_ALT = (Clay_Color) { 50, 52, 56, 255 };
+const Clay_Color COL_TRANSPARENT = (Clay_Color) { 0, 0, 0, 0 };
 
 // Layouts
 const Clay_Sizing layout_grow = {
@@ -66,7 +69,7 @@ Clay_RenderCommandArray layout() {
             }),
             CLAY_LAYOUT({
                 .sizing = {
-                    .height = CLAY_SIZING_FIXED(60),
+                    .height = CLAY_SIZING_FIT({ 60 }),
                     .width = CLAY_SIZING_GROW(),
                 },
                 .childAlignment = {
@@ -117,35 +120,77 @@ Clay_RenderCommandArray layout() {
             }),
             CLAY_LAYOUT({
                 .sizing = {
+                    .height = CLAY_SIZING_FIT({ 80 }),
                     .width = CLAY_SIZING_GROW(),
-                    .height = CLAY_SIZING_FIXED(60),
                 },
                 .childAlignment = {
                     .x = CLAY_ALIGN_X_LEFT,
                     .y = CLAY_ALIGN_Y_CENTER,
                 },
+                .childGap = 6,
+                .padding = { 6, 6 },
             })
         ) {
             CLAY(
-                CLAY_ID("Word Input Prompt"),
-                CLAY_TEXT(CLAY_STRING("Enter first missing word: "), CLAY_TEXT_CONFIG({
-                    .fontId = FONT_ID_BODY_24,
-                    .fontSize = 36,
-                    .textColor = COL_FOREGROUND,
-                })),
+                CLAY_ID("Word Input Prompt Backboard"),
+                CLAY_RECTANGLE({
+                    .color = COL_TRANSPARENT,
+                }),
                 CLAY_LAYOUT({
-                    .padding = { 8, 8 },
+                    .sizing = {
+                        .height = CLAY_SIZING_FIT(),
+                        .width = CLAY_SIZING_FIT(),
+                    },
+                    .childAlignment = {
+                        .x = CLAY_ALIGN_X_LEFT,
+                        .y = CLAY_ALIGN_Y_CENTER,
+                    }
                 })
-            ) {}
+            ) {
+                CLAY(
+                    CLAY_ID("Word Input Prompt"),
+                    CLAY_TEXT(CLAY_STRING("Enter first missing word: "), CLAY_TEXT_CONFIG({
+                        .fontId = FONT_ID_BODY_24,
+                        .fontSize = 36,
+                        .textColor = COL_FOREGROUND,
+                    })),
+                    CLAY_LAYOUT({
+                        .padding = { 6, 6 },
+                    })
+                ) {}
+            }
 
             CLAY(
-                CLAY_ID("Word Input"),
-                CLAY_TEXT(CLAY_STRING(input_buf), CLAY_TEXT_CONFIG({
-                    .fontId = FONT_ID_BODY_24,
-                    .fontSize = 36,
-                    .textColor = COL_FOREGROUND,
-                }))
-            ) {}
+                CLAY_ID("Word Input Backboard"),
+                CLAY_RECTANGLE({
+                    .color = COL_BACKDROP_ALT,
+                    .cornerRadius = 8,
+                }),
+                CLAY_LAYOUT({
+                    .childAlignment = {
+                        .x = CLAY_ALIGN_X_LEFT,
+                        .y = CLAY_ALIGN_Y_CENTER,
+                    },
+                    .sizing = layout_grow,
+                })
+            ) {
+                Clay_String input_buf_string = (Clay_String) {
+                    .chars = input_buf,
+                    .length = input_buf_count,
+                };
+
+                CLAY(
+                    CLAY_ID("Word Input"),
+                    CLAY_TEXT(input_buf_string, CLAY_TEXT_CONFIG({
+                        .fontId = FONT_ID_BODY_24,
+                        .fontSize = 36,
+                        .textColor = COL_FOREGROUND,
+                    })),
+                    CLAY_LAYOUT({
+                        .padding = { 6, 6 },
+                    })
+                ) {}
+            }
         }
     }
 

@@ -7,9 +7,7 @@
 #ifdef CLAY_OVERFLOW_TRAP
 #include <signal.h>
 #endif
-#ifndef CLAY_HEADER
 #include "clay.h"
-#endif
 #include "clay_renderer_raylib.h"
 
 #define CLAY_RECTANGLE_TO_RAYLIB_RECTANGLE(rectangle) (Rectangle) { .x = rectangle.x, .y = rectangle.y, .width = rectangle.width, .height = rectangle.height }

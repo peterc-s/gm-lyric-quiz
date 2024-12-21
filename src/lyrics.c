@@ -727,7 +727,9 @@ RedactedSong redact_song(Song* song, int num_to_redact) {
                 } else {
                     // otherwise, redact the word
                     int word_end = word_start;
-                    while(song->lyrics.chars[word_end % song->lyrics.length] != ' ') {
+                    while(song->lyrics.chars[word_end % song->lyrics.length] != ' '
+                       && song->lyrics.chars[word_end % song->lyrics.length] != '\n'
+                       && song->lyrics.chars[word_end % song->lyrics.length] != '\0') {
                         redacted_lyrics[word_end % song->lyrics.length] = '_';
                         ++word_end;
                         ++index;
