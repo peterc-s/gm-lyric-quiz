@@ -692,7 +692,6 @@ Song LYRICS[] = {
 };
 
 
-const int MAX_WORD_SKIP = 50;
 
 int cmp_redacted_words(const void* a, const void* b) {
     RedactedWord* word_a = (RedactedWord*)a;
@@ -702,8 +701,10 @@ int cmp_redacted_words(const void* a, const void* b) {
 }
 
 RedactedSong redact_song(Song* song, int num_to_redact) {
+    int max_word_skip = song->lyrics.length / 4;
+
     srand(time(NULL));
-    int words_until_redact = rand() % MAX_WORD_SKIP;
+    int words_until_redact = rand() % max_word_skip;
 
     // create redacted string
     char* redacted_lyrics = malloc(song->lyrics.length);
@@ -763,7 +764,7 @@ RedactedSong redact_song(Song* song, int num_to_redact) {
 
                     // decrement amount to redact
                     --num_to_redact;
-                    words_until_redact = rand() % MAX_WORD_SKIP;
+                    words_until_redact = rand() % max_word_skip;
                 }
             } else {
                 // otherwise, decrement words until redact

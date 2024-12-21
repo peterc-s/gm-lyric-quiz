@@ -37,13 +37,14 @@ const Clay_Sizing layout_fit = {
 };
 
 ///////
-/// Global variables
+/// Global state
 bool debug = false;
 int lyric_index;
 RedactedSong redacted;
 int redacted_index = 0;
 char input_buf[MAX_INPUT_BUF];
 int input_buf_count = 0;
+Clay_String correct_string;
 
 //////
 /// Utility
@@ -81,6 +82,7 @@ Clay_RenderCommandArray layout() {
                     .x = CLAY_ALIGN_X_CENTER,
                     .y = CLAY_ALIGN_Y_CENTER,
                 },
+                .childGap = 20,
             })
         ) {
             CLAY(
@@ -91,6 +93,29 @@ Clay_RenderCommandArray layout() {
                     .textColor = COL_FOREGROUND,
                 }))
             ) {}
+
+            CLAY(
+                CLAY_ID("Correct Count Box"),
+                CLAY_RECTANGLE({
+                    .color = COL_TRANSPARENT,
+                    .cornerRadius = 4,
+                }),
+                CLAY_LAYOUT({
+                    .childAlignment = {
+                        .x = CLAY_ALIGN_X_CENTER,
+                        .y = CLAY_ALIGN_Y_CENTER,
+                    },
+                })
+            ) {
+                CLAY(
+                    CLAY_ID("Correct Count"),
+                    CLAY_TEXT(correct_string, CLAY_TEXT_CONFIG({
+                        .fontId = FONT_ID_BODY_24,
+                        .fontSize = 42,
+                        .textColor = COL_FOREGROUND,
+                    }))
+                ) {}
+            }
         }
 
         CLAY(
@@ -252,9 +277,30 @@ void draw() {
     }
 
     if (IsKeyPressed(KEY_ENTER)) {
+        //DEBUG
         printf("GUESSED: %s, ACTUAL: %s\n", input_buf, redacted.redacted_words[redacted_index].word);
         if (!strcmp(redacted.redacted_words[redacted_index].word, input_buf)) {
+            // Copy word from original into the redacted
+            memcpy((char*)redacted.redacted_lyrics.chars + redacted.redacted_words[redacted_index].start_index, redacted.redacted_words[redacted_index].word, redacted.redacted_words[redacted_index].len);
             printf("Correct!\n");
+            ++redacted_index;
+
+            // Clear input buffer
+            input_buf_count = 0;
+            input_buf[input_buf_count] = '\0';
+
+            char correct_chars[64];
+            snprintf(correct_chars, 64, "Correct: %d of %d", redacted_index, redacted.num_redacted);
+            correct_string = (Clay_String) {
+                .chars = correct_chars,
+                .length = strlen(correct_chars),
+            };
+
+            if (redacted_index  == redacted.num_redacted) {
+                printf("WIN!");
+                CloseWindow();
+                return;
+            }
         } else {
             printf("Wrong!\n");
         }
@@ -278,7 +324,14 @@ int main(void) {
     Song song = LYRICS[lyric_index];
 
     // Redact lyrics
-    redacted = redact_song(&song, song.lyrics.length / 30);
+    redacted = redact_song(&song, song.lyrics.length / 300);
+
+    char correct_chars[64];
+    snprintf(correct_chars, 64, "Correct: %d of %d", redacted_index, redacted.num_redacted);
+    correct_string = (Clay_String) {
+        .chars = correct_chars,
+        .length = strlen(correct_chars),
+    };
 
     // Allocate memory
     uint64_t total_mem = Clay_MinMemorySize();
