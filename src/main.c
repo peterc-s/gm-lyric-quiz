@@ -16,6 +16,7 @@
 /// Global constants
 const uint32_t FONT_ID_BODY_24 = 0;
 const uint32_t FONT_ID_BODY_16 = 1;
+#define MAX_CORRECT_CHARS 64
 #define MAX_INPUT_BUF 50
 
 // Colours
@@ -24,6 +25,7 @@ const Clay_Color COL_BACKDROP = (Clay_Color) { 40, 42, 46, 255 };
 const Clay_Color COL_FOREGROUND = (Clay_Color) { 197, 200, 198, 255 };
 const Clay_Color COL_BACKDROP_ALT = (Clay_Color) { 50, 52, 56, 255 };
 const Clay_Color COL_TRANSPARENT = (Clay_Color) { 0, 0, 0, 0 };
+const Clay_Color COL_GREEN = (Clay_Color) { 5, 145, 19, 255};
 
 // Layouts
 const Clay_Sizing layout_grow = {
@@ -44,7 +46,10 @@ RedactedSong redacted;
 int redacted_index = 0;
 char input_buf[MAX_INPUT_BUF];
 int input_buf_count = 0;
+char correct_chars[MAX_CORRECT_CHARS];
 Clay_String correct_string;
+bool game_won = false;
+
 
 //////
 /// Utility
@@ -54,6 +59,38 @@ static inline Clay_Vector2 RL_V2_TO_CLAY(Vector2 vec) {
 
 //////
 /// Functions
+void reset_game() {
+    // Get lyric index
+    srand(time(NULL));
+    lyric_index = rand() % NUM_LYRICS;
+    Song song = LYRICS[lyric_index];
+
+    // Redact lyrics
+    redacted = redact_song(&song, song.lyrics.length / 300);
+    redacted_index = 0;
+
+    snprintf(correct_chars, MAX_CORRECT_CHARS, "[%d / %d correct]", redacted_index, redacted.num_redacted);
+    correct_string = (Clay_String) {
+        .chars = correct_chars,
+        .length = strlen(correct_chars),
+    };
+
+    // Clear input
+    input_buf_count = 0;
+    input_buf[input_buf_count] = '\0';
+
+    // Reset won state
+    game_won = false;
+}
+
+void free_lyrics() {
+    free((char*)redacted.redacted_lyrics.chars);
+    for (unsigned i = 0; i < redacted.num_redacted; ++i) {
+        free(redacted.redacted_words[i].word);
+    }
+    free(redacted.redacted_words);
+}
+
 Clay_RenderCommandArray layout() {
     Clay_BeginLayout();
 
@@ -67,6 +104,59 @@ Clay_RenderCommandArray layout() {
             .layoutDirection = CLAY_TOP_TO_BOTTOM,
         })
     ) {
+        if (game_won) {
+            CLAY(
+                CLAY_ID("Win Box"),
+                CLAY_RECTANGLE({
+                    .color = COL_GREEN,
+                    .cornerRadius = 8,
+                }),
+                CLAY_FLOATING({
+                    .offset = {
+                        .x = GetScreenWidth() / 2.0,
+                        .y = GetScreenHeight() / 2.0,
+                    },
+                    .attachment = CLAY_ATTACH_POINT_CENTER_CENTER,
+                    .pointerCaptureMode = CLAY_POINTER_CAPTURE_MODE_CAPTURE,
+                }),
+                CLAY_LAYOUT({
+                    .sizing = {
+                        .height = CLAY_SIZING_FIT(),
+                        .width = CLAY_SIZING_FIT(),
+                    },
+                    .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                    .childAlignment = {
+                        .x = CLAY_ALIGN_X_CENTER,
+                        .y = CLAY_ALIGN_Y_TOP,
+                    }
+                })
+            ) {
+                CLAY(
+                    CLAY_ID("Win Header"),
+                    CLAY_TEXT(CLAY_STRING("You win!"), CLAY_TEXT_CONFIG({
+                        .fontId = FONT_ID_BODY_24,
+                        .fontSize = 70,
+                        .textColor = COL_FOREGROUND,
+                    })),
+                    CLAY_LAYOUT({
+                        .padding = { 30, 20 },
+                    })
+                ) {}
+
+                CLAY(
+                    CLAY_ID("Win Help Text"),
+                    CLAY_TEXT(CLAY_STRING("Press Ctrl+q to quit or Ctrl+r to reset."), CLAY_TEXT_CONFIG({
+                        .fontId = FONT_ID_BODY_16,
+                        .fontSize = 36,
+                        .textColor = COL_FOREGROUND,
+                    })),
+                    CLAY_LAYOUT({
+                        .padding = { 20, 20 },
+                    })
+                ) {}
+            }
+        }
+
         CLAY(
             CLAY_ID("Header"),
             CLAY_RECTANGLE({
@@ -249,60 +339,63 @@ void draw() {
         return;
     }
 
-    // Text input
-    int key = GetCharPressed();
+    if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_R)) {
+        free_lyrics();
+        reset_game();
+    }
 
-    // Handle english characters
-    while (key > 0) {
-        if (key >= 32 && key <= 125 && input_buf_count < MAX_INPUT_BUF - 1) {
-            input_buf[input_buf_count] = (char)key;
-            input_buf[input_buf_count + 1] = '\0';
-            ++input_buf_count;
+    // Text input
+    if (!game_won) {
+        int key = GetCharPressed();
+
+        // Handle english characters
+        while (key > 0) {
+            if (key >= 32 && key <= 125 && input_buf_count < MAX_INPUT_BUF - 1) {
+                input_buf[input_buf_count] = (char)key;
+                input_buf[input_buf_count + 1] = '\0';
+                ++input_buf_count;
+            }
+
+            key = GetCharPressed();
         }
 
-        key = GetCharPressed();
-    }
+        // Handle backspace
+        if (IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) {
+            --input_buf_count;
+            if (input_buf_count < 0) input_buf_count = 0;
+            input_buf[input_buf_count] = '\0';
+        }
 
-    // Handle backspace
-    if (IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) {
-        --input_buf_count;
-        if (input_buf_count < 0) input_buf_count = 0;
-        input_buf[input_buf_count] = '\0';
-    }
-
-    // Ctrl+L to clear
-    if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_L)) {
-        input_buf_count = 0;
-        input_buf[input_buf_count] = '\0';
-    }
-
-    if (IsKeyPressed(KEY_ENTER)) {
-        //DEBUG
-        printf("GUESSED: %s, ACTUAL: %s\n", input_buf, redacted.redacted_words[redacted_index].word);
-        if (!strcmp(redacted.redacted_words[redacted_index].word, input_buf)) {
-            // Copy word from original into the redacted
-            memcpy((char*)redacted.redacted_lyrics.chars + redacted.redacted_words[redacted_index].start_index, redacted.redacted_words[redacted_index].word, redacted.redacted_words[redacted_index].len);
-            printf("Correct!\n");
-            ++redacted_index;
-
-            // Clear input buffer
+        // Ctrl+L to clear
+        if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_L)) {
             input_buf_count = 0;
             input_buf[input_buf_count] = '\0';
+        }
 
-            char correct_chars[64];
-            snprintf(correct_chars, 64, "Correct: %d of %d", redacted_index, redacted.num_redacted);
-            correct_string = (Clay_String) {
-                .chars = correct_chars,
-                .length = strlen(correct_chars),
-            };
+        if (IsKeyPressed(KEY_ENTER)) {
+            if (!strcmp(redacted.redacted_words[redacted_index].word, input_buf)) {
+                // Copy word from original into the redacted
+                memcpy((char*)redacted.redacted_lyrics.chars + redacted.redacted_words[redacted_index].start_index, redacted.redacted_words[redacted_index].word, redacted.redacted_words[redacted_index].len);
+                printf("Correct!\n");
+                ++redacted_index;
 
-            if (redacted_index  == redacted.num_redacted) {
-                printf("WIN!");
-                CloseWindow();
-                return;
+                // Clear input buffer
+                input_buf_count = 0;
+                input_buf[input_buf_count] = '\0';
+
+                char correct_chars[64];
+                snprintf(correct_chars, 64, "Correct: %d of %d", redacted_index, redacted.num_redacted);
+                correct_string = (Clay_String) {
+                    .chars = correct_chars,
+                    .length = strlen(correct_chars),
+                };
+
+                if (redacted_index  == redacted.num_redacted) {
+                    game_won = true;
+                }
+            } else {
+                printf("Wrong!\n");
             }
-        } else {
-            printf("Wrong!\n");
         }
     }
 
@@ -318,20 +411,8 @@ void draw() {
 }
 
 int main(void) {
-    // Get lyric index
-    srand(time(NULL));
-    lyric_index = rand() % NUM_LYRICS;
-    Song song = LYRICS[lyric_index];
-
-    // Redact lyrics
-    redacted = redact_song(&song, song.lyrics.length / 300);
-
-    char correct_chars[64];
-    snprintf(correct_chars, 64, "Correct: %d of %d", redacted_index, redacted.num_redacted);
-    correct_string = (Clay_String) {
-        .chars = correct_chars,
-        .length = strlen(correct_chars),
-    };
+    // Set up game
+    reset_game();
 
     // Allocate memory
     uint64_t total_mem = Clay_MinMemorySize();
@@ -362,6 +443,8 @@ int main(void) {
     while(!WindowShouldClose()) {
         draw();
     }
+    
+    free_lyrics();
 
     return EXIT_SUCCESS;
 }
