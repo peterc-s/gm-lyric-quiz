@@ -3,47 +3,116 @@
 #include "clay.h"
 #include "clay_renderer_raylib.h"
 
+#include "lyrics.h"
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
 
-// Global constants
+///////
+/// Global constants
 const uint32_t FONT_ID_BODY_24 = 0;
 const uint32_t FONT_ID_BODY_16 = 1;
-const Clay_Color COL_BACKGROUND = (Clay_Color) { 8, 10, 14, 255 };
 
-// Global variables
+// Colours
+const Clay_Color COL_BACKGROUND = (Clay_Color) { 8, 10, 14, 255 };
+const Clay_Color COL_BACKDROP = (Clay_Color) { 40, 42, 46, 255 };
+const Clay_Color COL_FOREGROUND = (Clay_Color) { 197, 200, 198, 255 };
+
+// Layouts
+const Clay_Sizing layout_grow = {
+    .width = CLAY_SIZING_GROW(),
+    .height = CLAY_SIZING_GROW(),
+};
+
+///////
+/// Global variables
 bool debug = false;
 
-// Utility
+//////
+/// Utility
 static inline Clay_Vector2 RL_V2_TO_CLAY(Vector2 vec) {
     return (Clay_Vector2) { .x = vec.x, .y = vec.y};
 }
 
-// Main clay code
+//////
+/// Functions
 Clay_RenderCommandArray layout() {
     Clay_BeginLayout();
 
-    CLAY (
+    CLAY(
+        CLAY_ID("Background"),
         CLAY_RECTANGLE({ .color = COL_BACKGROUND }),
         CLAY_LAYOUT({
-            .sizing = {
-                .width = CLAY_SIZING_GROW(),
-                .height = CLAY_SIZING_GROW(),
-            }
+            .sizing = layout_grow,
+            .padding = { 6, 6 },
+            .childGap = 6,
+            .layoutDirection = CLAY_TOP_TO_BOTTOM,
         })
-    ) {}
+    ) {
+        CLAY(
+            CLAY_ID("Header"),
+            CLAY_RECTANGLE({
+                .color = COL_BACKDROP,
+                .cornerRadius = 8,
+            }),
+            CLAY_LAYOUT({
+                .sizing = {
+                    .height = CLAY_SIZING_FIXED(60),
+                    .width = CLAY_SIZING_GROW(),
+                },
+                .childAlignment = {
+                    .x = CLAY_ALIGN_X_CENTER,
+                    .y = CLAY_ALIGN_Y_CENTER,
+                },
+            })
+        ) {
+            CLAY(
+                CLAY_ID("Header Text"),
+                CLAY_TEXT(LYRICS[0].title, CLAY_TEXT_CONFIG({
+                    .fontId = FONT_ID_BODY_24,
+                    .fontSize = 42,
+                    .textColor = COL_FOREGROUND,
+                }))
+            ) {}
+        }
+
+        CLAY(
+            CLAY_ID("Lyric Container"),
+            CLAY_RECTANGLE({
+                .color = COL_BACKDROP,
+                .cornerRadius = 8,
+            }),
+            CLAY_SCROLL({ .vertical = true }),
+            CLAY_LAYOUT({
+                .sizing = layout_grow,
+            })
+        ) {
+            CLAY(
+                CLAY_ID("Lyrics"),
+                CLAY_TEXT(LYRICS[0].lyrics, CLAY_TEXT_CONFIG({
+                    .fontId = FONT_ID_BODY_16,
+                    .fontSize = 24,
+                    .textColor = COL_FOREGROUND,
+                })),
+                CLAY_LAYOUT({
+                    .padding = { 8, 8 },
+                })
+            ) {}
+        }
+    }
 
     return Clay_EndLayout();
 }
 
-void draw(void) {
+void draw() {
     // Mouse wheel
-    Vector2 mwheel_delta = GetMouseWheelMoveV();
+    Clay_Vector2 mwheel_delta = RL_V2_TO_CLAY(GetMouseWheelMoveV());
 
     // Mouse
     Clay_Vector2 mouse_pos = RL_V2_TO_CLAY(GetMousePosition());
     Clay_SetPointerState(mouse_pos, IsMouseButtonDown(0));
+    Clay_UpdateScrollContainers(true, mwheel_delta, GetFrameTime());
 
     // Screen size
     Clay_SetLayoutDimensions((Clay_Dimensions) { (float)GetScreenWidth(), (float)GetScreenHeight() });
