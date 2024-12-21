@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS ?= -Wall -Wextra -pedantic -O2 -D_XOPEN_SOURCE=600 -D_FORTIFY_SOURCE=3 -Werror=format-security -fstack-clash-protection -fstack-protector-all -fcf-protection -Wl,-z,relro,-z,no -lm -lraylib
+CFLAGS ?= -Wall -Wextra -pedantic -O2 -D_XOPEN_SOURCE=600 -D_FORTIFY_SOURCE=3 -Werror=format-security -fstack-clash-protection -fstack-protector-all -fcf-protection -s -Wl,-z,relro,-z,now -lm -lraylib
 CFLAGS += $(CFLAGS_EX)
 
 SRCDIR = src
