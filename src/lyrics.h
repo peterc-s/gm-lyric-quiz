@@ -23,7 +23,7 @@ typedef struct RedactedSong {
 
 RedactedSong redact_song(Song* song, int num_to_redact);
 
-#define NUM_LYRICS 11
+#define NUM_LYRICS 63
 extern Song LYRICS[];
 
 #endif

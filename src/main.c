@@ -72,12 +72,12 @@ static inline uint64_t time_ms() {
 /// Functions
 void reset_game() {
     // Get lyric index
-    srand(time(NULL));
     lyric_index = rand() % NUM_LYRICS;
     Song song = LYRICS[lyric_index];
 
     // Redact lyrics
-    redacted = redact_song(&song, song.lyrics.length / WORD_RATIO);
+    int num_to_redact = (song.lyrics.length / WORD_RATIO);
+    redacted = redact_song(&song, num_to_redact <= 0 ? 1 : num_to_redact);
     redacted_index = 0;
 
     snprintf(correct_chars, MAX_CORRECT_CHARS, "[%d / %d correct]", redacted_index, redacted.num_redacted);
@@ -435,6 +435,7 @@ int main(void) {
     SetTraceLogLevel(LOG_ERROR); 
     
     // Set up game
+    srand(time(NULL));
     reset_game();
 
     // Allocate memory
