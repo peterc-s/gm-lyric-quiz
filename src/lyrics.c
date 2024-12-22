@@ -5,8 +5,103 @@
 #include <stdio.h>
 #include <string.h>
 
-int NUM_LYRICS = 11;
-Song LYRICS[] = {
+int cmp_redacted_words(const void* a, const void* b) {
+    RedactedWord* word_a = (RedactedWord*)a;
+    RedactedWord* word_b = (RedactedWord*)b;
+
+    return word_a->start_index - word_b->start_index;
+}
+
+RedactedSong redact_song(Song* song, int num_to_redact) {
+    int max_word_skip = song->lyrics.length / 4;
+
+    srand(time(NULL));
+    int words_until_redact = rand() % max_word_skip;
+
+    // create redacted string
+    char* redacted_lyrics = malloc(song->lyrics.length);
+    if (!redacted_lyrics) {
+        fprintf(stderr, "ERROR: Unable to malloc redacted lyrics.");
+        exit(EXIT_FAILURE);
+    }
+    memcpy(redacted_lyrics, song->lyrics.chars, song->lyrics.length);
+
+    RedactedWord* redacted_words = malloc(num_to_redact * sizeof(RedactedWord));
+    if (!redacted_words) {
+        fprintf(stderr, "ERROR: Unable to malloc redacted words array.");
+        exit(EXIT_FAILURE);
+    }
+    int num_redacted = 0;
+
+    // loop until no more words need
+    // to be redacted
+    int index = 0;
+    while (num_to_redact) {
+        // check for space at current index
+        if (song->lyrics.chars[index % song->lyrics.length] == ' ') {
+            // if no words left until redact,
+            if (!words_until_redact) {
+                // skip to first letter of word
+                int word_start = index + 1;
+                
+                // check if already redacted
+                if (redacted_lyrics[word_start % song->lyrics.length] == '_') {
+                    // if it is, then redact next word
+                    ++words_until_redact;
+                } else {
+                    // otherwise, redact the word
+                    int word_end = word_start;
+                    while(song->lyrics.chars[word_end % song->lyrics.length] != ' '
+                       && song->lyrics.chars[word_end % song->lyrics.length] != '\n'
+                       && song->lyrics.chars[word_end % song->lyrics.length] != '\0') {
+                        redacted_lyrics[word_end % song->lyrics.length] = '_';
+                        ++word_end;
+                        ++index;
+                    }
+
+                    int word_length = word_end - word_start;
+                    char* redacted_word = malloc(word_length + 1);
+                    if (!redacted_word) {
+                        fprintf(stderr, "ERROR: Unable to malloc redacted word.");
+                        exit(EXIT_FAILURE);
+                    }
+                    memcpy(redacted_word, &song->lyrics.chars[word_start % song->lyrics.length], word_length);
+                    redacted_word[word_length] = '\0';
+
+                    redacted_words[num_redacted++] = (RedactedWord) {
+                        .start_index = word_start % song->lyrics.length,
+                        .len = word_length,
+                        .word = redacted_word,
+                    };
+
+                    // decrement amount to redact
+                    --num_to_redact;
+                    words_until_redact = rand() % max_word_skip;
+                }
+            } else {
+                // otherwise, decrement words until redact
+                --words_until_redact;
+            }
+        }
+
+        // if no space at current index then just skip ahead
+        ++index;
+    }
+
+    qsort(redacted_words, num_redacted, sizeof(RedactedWord), cmp_redacted_words);
+
+    return (RedactedSong) {
+        .original = song,
+        .redacted_lyrics = (Clay_String) {
+            .chars = redacted_lyrics,
+            .length = song->lyrics.length,
+        },
+        .num_redacted = num_redacted,
+        .redacted_words = redacted_words,
+    };
+}
+
+Song LYRICS[NUM_LYRICS] = {
     (Song) {
         .title = CLAY_STRING( "Faith" ),
         .lyrics = CLAY_STRING("Well, I guess it would be nice if I could touch your body\n"
@@ -691,100 +786,3 @@ Song LYRICS[] = {
     }
 };
 
-
-
-int cmp_redacted_words(const void* a, const void* b) {
-    RedactedWord* word_a = (RedactedWord*)a;
-    RedactedWord* word_b = (RedactedWord*)b;
-
-    return word_a->start_index - word_b->start_index;
-}
-
-RedactedSong redact_song(Song* song, int num_to_redact) {
-    int max_word_skip = song->lyrics.length / 4;
-
-    srand(time(NULL));
-    int words_until_redact = rand() % max_word_skip;
-
-    // create redacted string
-    char* redacted_lyrics = malloc(song->lyrics.length);
-    if (!redacted_lyrics) {
-        fprintf(stderr, "ERROR: Unable to malloc redacted lyrics.");
-        exit(EXIT_FAILURE);
-    }
-    memcpy(redacted_lyrics, song->lyrics.chars, song->lyrics.length);
-
-    RedactedWord* redacted_words = malloc(num_to_redact * sizeof(RedactedWord));
-    if (!redacted_words) {
-        fprintf(stderr, "ERROR: Unable to malloc redacted words array.");
-        exit(EXIT_FAILURE);
-    }
-    int num_redacted = 0;
-
-    // loop until no more words need
-    // to be redacted
-    int index = 0;
-    while (num_to_redact) {
-        // check for space at current index
-        if (song->lyrics.chars[index % song->lyrics.length] == ' ') {
-            // if no words left until redact,
-            if (!words_until_redact) {
-                // skip to first letter of word
-                int word_start = index + 1;
-                
-                // check if already redacted
-                if (redacted_lyrics[word_start % song->lyrics.length] == '_') {
-                    // if it is, then redact next word
-                    ++words_until_redact;
-                } else {
-                    // otherwise, redact the word
-                    int word_end = word_start;
-                    while(song->lyrics.chars[word_end % song->lyrics.length] != ' '
-                       && song->lyrics.chars[word_end % song->lyrics.length] != '\n'
-                       && song->lyrics.chars[word_end % song->lyrics.length] != '\0') {
-                        redacted_lyrics[word_end % song->lyrics.length] = '_';
-                        ++word_end;
-                        ++index;
-                    }
-
-                    int word_length = word_end - word_start;
-                    char* redacted_word = malloc(word_length + 1);
-                    if (!redacted_word) {
-                        fprintf(stderr, "ERROR: Unable to malloc redacted word.");
-                        exit(EXIT_FAILURE);
-                    }
-                    memcpy(redacted_word, &song->lyrics.chars[word_start % song->lyrics.length], word_length);
-                    redacted_word[word_length] = '\0';
-
-                    redacted_words[num_redacted++] = (RedactedWord) {
-                        .start_index = word_start % song->lyrics.length,
-                        .len = word_length,
-                        .word = redacted_word,
-                    };
-
-                    // decrement amount to redact
-                    --num_to_redact;
-                    words_until_redact = rand() % max_word_skip;
-                }
-            } else {
-                // otherwise, decrement words until redact
-                --words_until_redact;
-            }
-        }
-
-        // if no space at current index then just skip ahead
-        ++index;
-    }
-
-    qsort(redacted_words, num_redacted, sizeof(RedactedWord), cmp_redacted_words);
-
-    return (RedactedSong) {
-        .original = song,
-        .redacted_lyrics = (Clay_String) {
-            .chars = redacted_lyrics,
-            .length = song->lyrics.length,
-        },
-        .num_redacted = num_redacted,
-        .redacted_words = redacted_words,
-    };
-}

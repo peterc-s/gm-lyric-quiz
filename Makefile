@@ -29,9 +29,12 @@ clean:
 	-rm $(NAME)
 
 install : $(NAME)
+	-mkdir $$HOME/.cache/$(NAME)
+	cp $(wildcard resources/*.ttf) $$HOME/.cache/$(NAME)
 	sudo cp $(NAME) $(INSTALL_DIR)/$(NAME)
 
 uninstall :
+	rm -r $$HOME/.cache/$(NAME)
 	sudo rm $(INSTALL_DIR)/$(NAME)
 
 .PHONY: all clean run install uninstall

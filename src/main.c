@@ -411,6 +411,9 @@ void draw() {
 }
 
 int main(void) {
+    // No debug messages
+    SetTraceLogLevel(LOG_ERROR); 
+    
     // Set up game
     reset_game();
 
