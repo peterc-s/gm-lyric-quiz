@@ -23,13 +23,13 @@ const uint32_t FONT_ID_BODY_16 = 1;
 const uint16_t WORD_RATIO = 50;
 
 // Colours
-const Clay_Color COL_BACKGROUND = (Clay_Color) { 8, 10, 14, 255 };
-const Clay_Color COL_BACKDROP = (Clay_Color) { 40, 42, 46, 255 };
-const Clay_Color COL_FOREGROUND = (Clay_Color) { 197, 200, 198, 255 };
-const Clay_Color COL_BACKDROP_ALT = (Clay_Color) { 50, 52, 56, 255 };
-const Clay_Color COL_TRANSPARENT = (Clay_Color) { 0, 0, 0, 0 };
-const Clay_Color COL_GREEN = (Clay_Color) { 5, 145, 19, 255};
-const Clay_Color COL_RED = (Clay_Color) { 165, 66, 34, 255 };
+const Clay_Color COL_BACKGROUND = { 8, 10, 14, 255 };
+const Clay_Color COL_BACKDROP = { 40, 42, 46, 255 };
+const Clay_Color COL_FOREGROUND = { 197, 200, 198, 255 };
+const Clay_Color COL_BACKDROP_ALT = { 50, 52, 56, 255 };
+const Clay_Color COL_TRANSPARENT = { 0, 0, 0, 0 };
+const Clay_Color COL_GREEN = { 5, 145, 19, 255};
+const Clay_Color COL_RED = { 165, 66, 34, 255 };
 
 // Layouts
 const Clay_Sizing layout_grow = {
@@ -100,7 +100,7 @@ void reset_game() {
 
 void free_lyrics() {
     free((char*)redacted.redacted_lyrics.chars);
-    for (unsigned i = 0; i < redacted.num_redacted; ++i) {
+    for (int i = 0; i < redacted.num_redacted; ++i) {
         free(redacted.redacted_words[i].word);
     }
     free(redacted.redacted_words);
