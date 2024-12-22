@@ -230,7 +230,7 @@ Song LYRICS[NUM_LYRICS] = {
                 "I will be your (father) preacher teacher\n"
                 "I will be your (I'll be your daddy, oh)\n"
                 "I will be the one who loves you\n"
-                "'Til the end of time \n"),
+                "'Til the end of time\n"),
     },
     (Song) { 
         .title = CLAY_STRING( "I Want Your Sex Part I" ),
@@ -352,7 +352,7 @@ Song LYRICS[NUM_LYRICS] = {
                 "Ohhh together\n"
                 "You and me\n"
                 "\n"
-                "I want your love \n"),
+                "I want your love\n"),
     },
     (Song) {
         .title = CLAY_STRING( "One More Try" ),
@@ -416,7 +416,7 @@ Song LYRICS[NUM_LYRICS] = {
                 "Who just isn't willin' to try\n"
                 "\n"
                 "I'm so cold inside\n"
-                "Maybe just one more try \n"),
+                "Maybe just one more try\n"),
     },
     (Song) {
         .title = CLAY_STRING( "Hard Day" ),
@@ -593,7 +593,7 @@ Song LYRICS[NUM_LYRICS] = {
                 "Na na na na na na, lady\n"
                 "Look at your hands\n"
                 "You've got two fat children and a drunken man\n"
-                "And I betcha don't like your life now \n"),
+                "And I betcha don't like your life now\n"),
     },
     (Song) {
         .title = CLAY_STRING( "Monkey" ),
@@ -782,7 +782,7 @@ Song LYRICS[NUM_LYRICS] = {
                 "I'd be there instead\n"
                 "\n"
                 "Oh, oh\n"
-                "Oh, sleep with me tonight \n"),
+                "Oh, sleep with me tonight\n"),
     }
 };
 
