@@ -17,4 +17,20 @@ Or, to build then run:
 make run
 ```
 
-Other commands are available, check the Makefile.
+To clean up build artefacts, including the output binary:
+```bash
+make clean
+```
+
+## Installing
+Use:
+```bash
+make install
+```
+
+## Uninstalling
+use:
+```bash
+make uninstall
+```
+
