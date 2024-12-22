@@ -29,6 +29,7 @@ const Clay_Color COL_FOREGROUND = (Clay_Color) { 197, 200, 198, 255 };
 const Clay_Color COL_BACKDROP_ALT = (Clay_Color) { 50, 52, 56, 255 };
 const Clay_Color COL_TRANSPARENT = (Clay_Color) { 0, 0, 0, 0 };
 const Clay_Color COL_GREEN = (Clay_Color) { 5, 145, 19, 255};
+const Clay_Color COL_RED = (Clay_Color) { 165, 66, 34, 255 };
 
 // Layouts
 const Clay_Sizing layout_grow = {
@@ -44,6 +45,8 @@ const Clay_Sizing layout_fit = {
 ///////
 /// Global state
 bool debug = false;
+int64_t wrong_time;
+bool show_wrong = false;
 int lyric_index;
 RedactedSong redacted;
 int redacted_index = 0;
@@ -58,6 +61,11 @@ bool game_won = false;
 /// Utility
 static inline Clay_Vector2 RL_V2_TO_CLAY(Vector2 vec) {
     return (Clay_Vector2) { .x = vec.x, .y = vec.y};
+}
+
+static inline uint64_t time_ms() {
+    clock_t current_time = clock();
+    return (uint64_t)(current_time * 10000) / CLOCKS_PER_SEC;
 }
 
 //////
@@ -81,6 +89,10 @@ void reset_game() {
     // Clear input
     input_buf_count = 0;
     input_buf[input_buf_count] = '\0';
+
+    // Reset wrong flag
+    wrong_time = time_ms();
+    show_wrong = false;
 
     // Reset won stat
     game_won = false;
@@ -284,7 +296,7 @@ Clay_RenderCommandArray layout() {
             CLAY(
                 CLAY_ID("Word Input Backboard"),
                 CLAY_RECTANGLE({
-                    .color = COL_BACKDROP_ALT,
+                    .color = show_wrong ? COL_RED : COL_BACKDROP_ALT,
                     .cornerRadius = 8,
                 }),
                 CLAY_LAYOUT({
@@ -395,8 +407,16 @@ void draw() {
                 if (redacted_index  == redacted.num_redacted) {
                     game_won = true;
                 }
+            } else {
+                wrong_time = time_ms();
+                show_wrong = true;
             }
         }
+    }
+
+    // reset wrong display
+    if (time_ms() - wrong_time > 444 && show_wrong) {
+        show_wrong = false;
     }
 
     // Get layout
