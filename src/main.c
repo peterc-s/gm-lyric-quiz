@@ -18,6 +18,9 @@ const uint32_t FONT_ID_BODY_24 = 0;
 const uint32_t FONT_ID_BODY_16 = 1;
 #define MAX_CORRECT_CHARS 64
 #define MAX_INPUT_BUF 50
+// probably don't set this lower than 20 to be safe (or the length longest word in all of the lyrics)
+// the higher this number, the easier
+const uint16_t WORD_RATIO = 50;
 
 // Colours
 const Clay_Color COL_BACKGROUND = (Clay_Color) { 8, 10, 14, 255 };
@@ -66,7 +69,7 @@ void reset_game() {
     Song song = LYRICS[lyric_index];
 
     // Redact lyrics
-    redacted = redact_song(&song, song.lyrics.length / 300);
+    redacted = redact_song(&song, song.lyrics.length / WORD_RATIO);
     redacted_index = 0;
 
     snprintf(correct_chars, MAX_CORRECT_CHARS, "[%d / %d correct]", redacted_index, redacted.num_redacted);
@@ -79,7 +82,7 @@ void reset_game() {
     input_buf_count = 0;
     input_buf[input_buf_count] = '\0';
 
-    // Reset won state
+    // Reset won stat
     game_won = false;
 }
 
