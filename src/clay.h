@@ -605,9 +605,9 @@ void* Clay__Array_Allocate_Arena(uint32_t capacity, uint32_t itemSize, uint32_t 
     return CLAY__NULL;
 }
 
-bool Clay__Array_RangeCheck(int index, uint32_t length)
+bool Clay__Array_RangeCheck(uint32_t index, uint32_t length)
 {
-    if (index < length && index >= 0) {
+    if (index < length) {
         return true;
     }
     if (Clay__warningsEnabled) {
@@ -1199,8 +1199,8 @@ Clay__MeasuredWordArray Clay__MeasuredWordArray_Allocate_Arena(uint32_t capacity
 Clay__MeasuredWord *Clay__MeasuredWordArray_Get(Clay__MeasuredWordArray *array, int index) {
     return Clay__Array_RangeCheck(index, array->length) ? &array->internalArray[index] : &CLAY__MEASURED_WORD_DEFAULT;
 }
-void Clay__MeasuredWordArray_Set(Clay__MeasuredWordArray *array, int index, Clay__MeasuredWord value) {
-	if (index < array->capacity && index >= 0) {
+void Clay__MeasuredWordArray_Set(Clay__MeasuredWordArray *array, uint32_t index, Clay__MeasuredWord value) {
+	if (index < array->capacity) {
 		array->internalArray[index] = value;
 		array->length = index < array->length ? array->length : index + 1;
 	} else {
@@ -1255,8 +1255,8 @@ Clay__MeasureTextCacheItem *Clay__MeasureTextCacheItemArray_Add(Clay__MeasureTex
 	}
 	return &CLAY__MEASURE_TEXT_CACHE_ITEM_DEFAULT;
 }
-void Clay__MeasureTextCacheItemArray_Set(Clay__MeasureTextCacheItemArray *array, int index, Clay__MeasureTextCacheItem value) {
-	if (index < array->capacity && index >= 0) {
+void Clay__MeasureTextCacheItemArray_Set(Clay__MeasureTextCacheItemArray *array, uint32_t index, Clay__MeasureTextCacheItem value) {
+	if (index < array->capacity) {
 		array->internalArray[index] = value;
 		array->length = index < array->length ? array->length : index + 1;
 	} else {
@@ -1290,8 +1290,8 @@ void Clay__int32_tArray_Add(Clay__int32_tArray *array, int32_t item) {
 		array->internalArray[array->length++] = item;
 	}
 }
-void Clay__int32_tArray_Set(Clay__int32_tArray *array, int index, int32_t value) {
-	if (index < array->capacity && index >= 0) {
+void Clay__int32_tArray_Set(Clay__int32_tArray *array, uint32_t index, int32_t value) {
+	if (index < array->capacity) {
 		array->internalArray[index] = value;
 		array->length = index < array->length ? array->length : index + 1;
 	} else {

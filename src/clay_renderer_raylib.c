@@ -129,7 +129,7 @@ void Clay_Raylib_Initialize(int width, int height, const char *title, unsigned i
 void Clay_Raylib_Render(Clay_RenderCommandArray renderCommands)
 {
     measureCalls = 0;
-    for (int j = 0; j < renderCommands.length; j++)
+    for (uint32_t j = 0; j < renderCommands.length; j++)
     {
         Clay_RenderCommand *renderCommand = Clay_RenderCommandArray_Get(&renderCommands, j);
         Clay_BoundingBox boundingBox = renderCommand->boundingBox;
