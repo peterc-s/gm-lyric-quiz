@@ -17,7 +17,7 @@
 const uint32_t FONT_ID_BODY_24 = 0;
 const uint32_t FONT_ID_BODY_16 = 1;
 #define MAX_CORRECT_CHARS 64
-#define MAX_INPUT_BUF 50
+#define MAX_INPUT_BUF 35
 // probably don't set this lower than 20 to be safe (or the length longest word in all of the lyrics)
 // the higher this number, the easier
 const uint16_t WORD_RATIO = 50;
@@ -308,7 +308,7 @@ Clay_RenderCommandArray layout() {
                         .textColor = COL_FOREGROUND,
                     })),
                     CLAY_LAYOUT({
-                        .padding = { 4, 4 },
+                        .padding = { 10, 4 },
                     })
                 ) {}
             }
@@ -379,7 +379,6 @@ void draw() {
             if (!strcmp(redacted.redacted_words[redacted_index].word, input_buf)) {
                 // Copy word from original into the redacted
                 memcpy((char*)redacted.redacted_lyrics.chars + redacted.redacted_words[redacted_index].start_index, redacted.redacted_words[redacted_index].word, redacted.redacted_words[redacted_index].len);
-                printf("Correct!\n");
                 ++redacted_index;
 
                 // Clear input buffer
@@ -396,8 +395,6 @@ void draw() {
                 if (redacted_index  == redacted.num_redacted) {
                     game_won = true;
                 }
-            } else {
-                printf("Wrong!\n");
             }
         }
     }
