@@ -2,6 +2,8 @@
 #define CLAY_IMPLEMENTATION
 #include "clay.h"
 #include "clay_renderer_raylib.h"
+#define ARENA_IMPLEMENTATION
+#include "arena.h"
 
 #include "lyrics.h"
 
@@ -56,8 +58,11 @@ char correct_chars[MAX_CORRECT_CHARS];
 Clay_String correct_string;
 bool game_won = false;
 
+///////
+/// Arenas
+static Arena lyric_arena = { 0 };
 
-//////
+///////
 /// Utility
 static inline Clay_Vector2 RL_V2_TO_CLAY(Vector2 vec) {
     return (Clay_Vector2) { .x = vec.x, .y = vec.y};
@@ -68,7 +73,7 @@ static inline uint64_t time_ms() {
     return (uint64_t)(current_time * 10000) / CLOCKS_PER_SEC;
 }
 
-//////
+///////
 /// Functions
 void reset_game() {
     // Get lyric index
@@ -76,8 +81,9 @@ void reset_game() {
     Song song = LYRICS[lyric_index];
 
     // Redact lyrics
+    arena_reset(&lyric_arena);
     int num_to_redact = (song.lyrics.length / WORD_RATIO);
-    redacted = redact_song(&song, num_to_redact <= 0 ? 1 : num_to_redact);
+    redacted = redact_song(&lyric_arena, &song, num_to_redact <= 0 ? 1 : num_to_redact);
     redacted_index = 0;
 
     snprintf(correct_chars, MAX_CORRECT_CHARS, "[%d / %d correct]", redacted_index, redacted.num_redacted);
@@ -96,14 +102,6 @@ void reset_game() {
 
     // Reset won stat
     game_won = false;
-}
-
-void free_lyrics() {
-    free((char*)redacted.redacted_lyrics.chars);
-    for (int i = 0; i < redacted.num_redacted; ++i) {
-        free(redacted.redacted_words[i].word);
-    }
-    free(redacted.redacted_words);
 }
 
 Clay_RenderCommandArray layout() {
@@ -355,7 +353,6 @@ void draw() {
     }
 
     if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_R)) {
-        free_lyrics();
         reset_game();
     }
 
@@ -467,8 +464,8 @@ int main(void) {
     while(!WindowShouldClose()) {
         draw();
     }
-    
-    free_lyrics();
+
+    arena_free(&lyric_arena);
 
     return EXIT_SUCCESS;
 }

@@ -2,6 +2,7 @@
 #define LYRICS_H
 
 #include "clay.h"
+#include "arena.h"
 
 typedef struct Song {
     Clay_String title;
@@ -21,7 +22,7 @@ typedef struct RedactedSong {
     int num_redacted;
 } RedactedSong;
 
-RedactedSong redact_song(Song* song, int num_to_redact);
+RedactedSong redact_song(Arena* arena, Song* song, int num_to_redact);
 
 #define NUM_LYRICS 63
 extern Song LYRICS[];

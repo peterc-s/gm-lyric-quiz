@@ -1,5 +1,6 @@
 #include "lyrics.h"
 #include "clay.h"
+#include "arena.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -11,20 +12,20 @@ int cmp_redacted_words(const void* a, const void* b) {
     return word_a->start_index - word_b->start_index;
 }
 
-RedactedSong redact_song(Song* song, int num_to_redact) {
+RedactedSong redact_song(Arena* arena, Song* song, int num_to_redact) {
     int max_word_skip = song->lyrics.length / 4;
 
     int words_until_redact = rand() % max_word_skip;
 
     // create redacted string
-    char* redacted_lyrics = malloc(song->lyrics.length);
+    char* redacted_lyrics = arena_alloc(arena, song->lyrics.length);
     if (!redacted_lyrics) {
         fprintf(stderr, "ERROR: Unable to malloc redacted lyrics.");
         exit(EXIT_FAILURE);
     }
     memcpy(redacted_lyrics, song->lyrics.chars, song->lyrics.length);
 
-    RedactedWord* redacted_words = malloc(num_to_redact * sizeof(RedactedWord));
+    RedactedWord* redacted_words = arena_alloc(arena, num_to_redact * sizeof(RedactedWord));
     if (!redacted_words) {
         fprintf(stderr, "ERROR: Unable to malloc redacted words array.");
         exit(EXIT_FAILURE);
@@ -58,7 +59,7 @@ RedactedSong redact_song(Song* song, int num_to_redact) {
                     }
 
                     int word_length = word_end - word_start;
-                    char* redacted_word = malloc(word_length + 1);
+                    char* redacted_word = arena_alloc(arena, word_length + 1);
                     if (!redacted_word) {
                         fprintf(stderr, "ERROR: Unable to malloc redacted word.");
                         exit(EXIT_FAILURE);
