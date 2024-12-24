@@ -1,38 +1,46 @@
-CC = gcc
-CFLAGS ?= -O2 -lm -lraylib
-CFLAGS += $(CFLAGS_EX)
+CMAKE_FLAGS = -DCMAKE_BUILD_TYPE=Release
 
 SRCDIR = src
 BUILDDIR = build
+INSTALLDIR = /usr/bin
 
-SRC = $(wildcard $(SRCDIR)/*.c)
-OBJ = $(SRC:$(SRCDIR)/%.c=$(BUILDDIR)/%.o)
+TARGET = gm-quiz
 
-INSTALL_DIR = /usr/bin
+all: ${BUILDDIR}/Makefile
+	$(MAKE) -C $(BUILDDIR)
 
-all : gm-quiz
-
-gm-quiz : $(OBJ)
-	$(CC) $(CFLAGS) $^ -o $@
-
-$(BUILDDIR)/%.o : $(SRCDIR)/%.c
-	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-run : gm-quiz
-	./gm-quiz $(ARGS)
+${BUILDDIR}/Makefile:
+	@echo "Creating build directory..."
+	@mkdir -p $(BUILDDIR)
+	@echo "Copying resources to build directory..."
+	@mkdir -p $(BUILDDIR)/resources
+	@cp -r resources/ $(BUILDDIR)/resources
+	@echo "Running CMake..."
+	@cmake $(CMAKE_FLAGS) -B$(BUILDDIR) -H.
+	@echo "DONE!"
 
 clean:
-	-rm -r $(BUILDDIR)
-	-rm gm-quiz
+	@echo "Removing build directory..."
+	@rm -rf $(BUILDDIR)
+	@echo "DONE!"
 
-install : gm-quiz
-	-mkdir $$HOME/.cache/gm-quiz
-	cp $(wildcard resources/*.ttf) $$HOME/.cache/gm-quiz
-	sudo cp gm-quiz $(INSTALL_DIR)/gm-quiz
+run: all
+	@$(BUILDDIR)/$(TARGET)
 
-uninstall :
-	rm -r $$HOME/.cache/gm-quiz
-	sudo rm $(INSTALL_DIR)/gm-quiz
+install: all
+	@echo "Creating cache directory at $(HOME)/.cache/gm-quiz..."
+	@-mkdir $$HOME/.cache/gm-quiz
+	@echo "Copying resources to cache directory..."
+	@cp $(wildcard resources/*.ttf) $$HOME/.cache/gm-quiz
+	@echo "Installing to $(INSTALLDIR)..."
+	@sudo cp $(BUILDDIR)/$(TARGET) $(INSTALLDIR)
+	@echo "DONE!"
+
+uninstall:
+	@echo "Removing cache directory at $(HOME)/.cache/gm-quiz..."
+	@rm -r $$HOME/.cache/gm-quiz
+	@echo "Uninstalling from $(INSTALLDIR)..."
+	@sudo rm $(INSTALLDIR)/$(TARGET)
+	@echo "DONE!"
 
 .PHONY: all clean run install uninstall
