@@ -33,4 +33,3 @@ use:
 ```bash
 make uninstall
 ```
-
