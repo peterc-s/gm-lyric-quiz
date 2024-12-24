@@ -447,13 +447,48 @@ int main(void) {
     Clay_Raylib_Initialize(1024, 768, "George Michael Lyric Quiz", FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI | FLAG_MSAA_4X_HINT);
 
     // Fonts
+    // Get home directory.
+    const char* home_dir = getenv("HOME");
+    if (home_dir == NULL) {
+        fprintf(stderr, "ERROR: HOME environment variable not set.\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    // Required font should be at `~/.cache/gm-quiz/Roboto-Regular.ttf`
+    const char* cache_font_suffix = ".cache/gm-quiz/Roboto-Regular.ttf";
+    size_t font_path_len = strlen(home_dir) + strlen(cache_font_suffix) + 2;
+    char* cache_font_path = malloc(font_path_len);
+    if (cache_font_path == NULL) {
+        fprintf(stderr, "ERROR: Failed to allocate memory for font path.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Construct the cache font path
+    snprintf(cache_font_path, font_path_len, "%s/%s", home_dir, cache_font_suffix);
+
+    // Required font could also be at `resources/Roboto-Regular.ttf`
+    const char* relative_font_path = "resources/Roboto-Regular.ttf";
+
+    // Choose correct font
+    char* font = NULL;
+    if (FileExists(relative_font_path)) {
+        // prioritise relative font path
+        font = (char*)relative_font_path;
+    } else if (FileExists(cache_font_path)) {
+        // use cache font path if 
+        font = (char*)cache_font_path;
+    } else {
+        fprintf(stderr, "ERROR: Required font not found at %s or %s\n", cache_font_path, relative_font_path);
+        exit(EXIT_FAILURE);
+    }
+
     Raylib_fonts[FONT_ID_BODY_24] = (Raylib_Font) {
-        .font = LoadFontEx("resources/Roboto-Regular.ttf", 48, 0, 400),
+        .font = LoadFontEx(font, 48, 0, 400),
         .fontId = FONT_ID_BODY_24,
     };
 
     Raylib_fonts[FONT_ID_BODY_16] = (Raylib_Font) {
-        .font = LoadFontEx("resources/Roboto-Regular.ttf", 32, 0, 400),
+        .font = LoadFontEx(font, 32, 0, 400),
         .fontId = FONT_ID_BODY_16,
     };
 

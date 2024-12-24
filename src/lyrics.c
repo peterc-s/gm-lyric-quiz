@@ -20,14 +20,14 @@ RedactedSong redact_song(Arena* arena, Song* song, int num_to_redact) {
     // create redacted string
     char* redacted_lyrics = arena_alloc(arena, song->lyrics.length);
     if (!redacted_lyrics) {
-        fprintf(stderr, "ERROR: Unable to malloc redacted lyrics.");
+        fprintf(stderr, "ERROR: Unable to malloc redacted lyrics.\n");
         exit(EXIT_FAILURE);
     }
     memcpy(redacted_lyrics, song->lyrics.chars, song->lyrics.length);
 
     RedactedWord* redacted_words = arena_alloc(arena, num_to_redact * sizeof(RedactedWord));
     if (!redacted_words) {
-        fprintf(stderr, "ERROR: Unable to malloc redacted words array.");
+        fprintf(stderr, "ERROR: Unable to malloc redacted words array.\n");
         exit(EXIT_FAILURE);
     }
     int num_redacted = 0;
@@ -61,7 +61,7 @@ RedactedSong redact_song(Arena* arena, Song* song, int num_to_redact) {
                     int word_length = word_end - word_start;
                     char* redacted_word = arena_alloc(arena, word_length + 1);
                     if (!redacted_word) {
-                        fprintf(stderr, "ERROR: Unable to malloc redacted word.");
+                        fprintf(stderr, "ERROR: Unable to alloc redacted word.\n");
                         exit(EXIT_FAILURE);
                     }
                     memcpy(redacted_word, &song->lyrics.chars[word_start % song->lyrics.length], word_length);

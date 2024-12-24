@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS ?= -O2 -D_FORTIFY_SOURCE=3 -Wformat -Werror=format-security -fstack-clash-protection -fstack-protector-all -fcf-protection -s -Wl,-z,relro,-z,now -lm -lraylib
+CFLAGS ?= -O2 -lm -lraylib
 CFLAGS += $(CFLAGS_EX)
 
 SRCDIR = src
@@ -10,31 +10,29 @@ OBJ = $(SRC:$(SRCDIR)/%.c=$(BUILDDIR)/%.o)
 
 INSTALL_DIR = /usr/bin
 
-NAME = gm-quiz
+all : gm-quiz
 
-all : $(NAME)
-
-$(NAME) : $(OBJ)
+gm-quiz : $(OBJ)
 	$(CC) $(CFLAGS) $^ -o $@
 
 $(BUILDDIR)/%.o : $(SRCDIR)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-run : $(NAME)
-	./$(NAME) $(ARGS)
+run : gm-quiz
+	./gm-quiz $(ARGS)
 
 clean:
 	-rm -r $(BUILDDIR)
-	-rm $(NAME)
+	-rm gm-quiz
 
-install : $(NAME)
-	-mkdir $$HOME/.cache/$(NAME)
-	cp $(wildcard resources/*.ttf) $$HOME/.cache/$(NAME)
-	sudo cp $(NAME) $(INSTALL_DIR)/$(NAME)
+install : gm-quiz
+	-mkdir $$HOME/.cache/gm-quiz
+	cp $(wildcard resources/*.ttf) $$HOME/.cache/gm-quiz
+	sudo cp gm-quiz $(INSTALL_DIR)/gm-quiz
 
 uninstall :
-	rm -r $$HOME/.cache/$(NAME)
-	sudo rm $(INSTALL_DIR)/$(NAME)
+	rm -r $$HOME/.cache/gm-quiz
+	sudo rm $(INSTALL_DIR)/gm-quiz
 
 .PHONY: all clean run install uninstall
