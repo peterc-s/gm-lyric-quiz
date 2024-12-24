@@ -14,7 +14,7 @@ ${BUILDDIR}/Makefile:
 	@mkdir -p $(BUILDDIR)
 	@echo "Copying resources to build directory..."
 	@mkdir -p $(BUILDDIR)/resources
-	@cp -r resources/ $(BUILDDIR)/resources
+	@cp -r resources/* $(BUILDDIR)/resources
 	@echo "Running CMake..."
 	@cmake $(CMAKE_FLAGS) -B$(BUILDDIR) -H.
 	@echo "DONE!"
