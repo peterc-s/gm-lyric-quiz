@@ -3,7 +3,6 @@ project(gm-quiz C)
 set(CMAKE_C_STANDARD 99)
 
 set(CMAKE_C_FLAGS -O2)
-
 if(CFLAGS_EX)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CFLAGS_EX}")
 endif()
@@ -35,8 +34,5 @@ target_link_libraries(${PROJECT_NAME} raylib)
 if(UNIX)
     target_link_libraries(${PROJECT_NAME} m)
 endif()
-
-install(TARGETS ${NAME} DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(DIRECTORY resources/ DESTINATION ${CMAKE_INSTALL_DATADIR}/${NAME}/resources FILES_MATCHING PATTERN "*.ttf")
 
 set(CMAKE_BUILD_TYPE Release)
